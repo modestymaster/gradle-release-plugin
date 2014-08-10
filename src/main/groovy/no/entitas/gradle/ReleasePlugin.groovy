@@ -30,6 +30,10 @@ abstract class ReleasePlugin implements Plugin<Project> {
         def version = createVersion(project)
         project.version = version
         project.extensions.release = new ReleasePluginExtension()
+
+        project.setProperty('releaseVersion', 'OhHai - parent')
+        project.subprojects*.setProperty('releaseVersion', version.getVersionLabel())
+
         logger = project.logger
 
         Task releasePrepareTask = project.task(TASK_RELEASE_PREPARE) << {
@@ -43,10 +47,15 @@ abstract class ReleasePlugin implements Plugin<Project> {
             }
 
             version.releasePrepare()
+logger.debug("DANO: +-+-+-+-+-+  Do we got the fucking tag string yet?: ${version.versionNumber} alternate (toString): ${version.toString()}")
+            project.subprojects*.setProperty('releaseVersion', version.versionNumber)
         }
 
         Task performReleaseTask = project.task(TASK_RELEASE_PERFORM) << {
             version.releasePerform()
+logger.debug("DANO: +-+-+-+-+-+  We just did the fookin releasePerform.  And here's the tag string: ${version.versionNumber} alternate (toString): ${version.toString()}")
+            project.setProperty('releaseVersion', version.versionNumber)
+            project.subprojects*.setProperty('releaseVersion', version.versionNumber)
         }
 
         if (project.subprojects.isEmpty()) {
@@ -59,6 +68,7 @@ abstract class ReleasePlugin implements Plugin<Project> {
                  Investigate if this somehow can be done lazy.
             */
             project.subprojects*.apply plugin: 'java'
+            project.subprojects*.apply plugin: 'maven-publish'
 
             Task cleanAllTask = project.task('cleanAll') << {}
             cleanAllTask.dependsOn(project.subprojects*.clean)
@@ -66,8 +76,19 @@ abstract class ReleasePlugin implements Plugin<Project> {
             Task buildAll = project.task('buildAll') << {}
             buildAll.dependsOn([cleanAllTask, project.subprojects*.build])
 
+            Task prePublishAll = project.task('prePublishAll') << {
+                project.setProperty('releaseVersion', version.versionNumber)
+                project.subprojects*.setProperty('releaseVersion', version.versionNumber)
+            }
+            Task publishAll = project.task('publishAll') << {
+                project.setProperty('releaseVersion', version.versionNumber)
+                project.subprojects*.setProperty('releaseVersion', version.versionNumber)
+            }
+
             releasePrepareTask.dependsOn(buildAll)
-            performReleaseTask.dependsOn([releasePrepareTask, project.subprojects*.uploadArchives])
+            prePublishAll.dependsOn(releasePrepareTask)
+            publishAll.dependsOn(performReleaseTask)
+            performReleaseTask.dependsOn([prePublishAll, project.subprojects*.publish])
         }
     }
 
