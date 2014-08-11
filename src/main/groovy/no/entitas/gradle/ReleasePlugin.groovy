@@ -31,31 +31,27 @@ abstract class ReleasePlugin implements Plugin<Project> {
         project.version = version
         project.extensions.release = new ReleasePluginExtension()
 
-        project.setProperty('releaseVersion', 'OhHai - parent')
-        project.subprojects*.setProperty('releaseVersion', version.getVersionLabel())
-
         logger = project.logger
+
+        if (project.hasProperty('runRelease')) {
+            project.subprojects*.setProperty('releaseVersion', version.getVersionLabel())
+        }
 
         Task releasePrepareTask = project.task(TASK_RELEASE_PREPARE) << {
             if (project.release.failOnSnapshotDependencies) {
                 project.allprojects.each { currentProject ->
                     currentProject.configurations.each { configuration ->
                         logger.info("Checking for snapshot dependencies in $currentProject.path -> $configuration.name")
-                        ensureNoSnapshotDependencies(configuration)
+//                        ensureNoSnapshotDependencies(configuration)
                     }
                 }
             }
 
             version.releasePrepare()
-logger.debug("DANO: +-+-+-+-+-+  Do we got the fucking tag string yet?: ${version.versionNumber} alternate (toString): ${version.toString()}")
-            project.subprojects*.setProperty('releaseVersion', version.versionNumber)
         }
 
         Task performReleaseTask = project.task(TASK_RELEASE_PERFORM) << {
             version.releasePerform()
-logger.debug("DANO: +-+-+-+-+-+  We just did the fookin releasePerform.  And here's the tag string: ${version.versionNumber} alternate (toString): ${version.toString()}")
-            project.setProperty('releaseVersion', version.versionNumber)
-            project.subprojects*.setProperty('releaseVersion', version.versionNumber)
         }
 
         if (project.subprojects.isEmpty()) {
@@ -76,20 +72,17 @@ logger.debug("DANO: +-+-+-+-+-+  We just did the fookin releasePerform.  And her
             Task buildAll = project.task('buildAll') << {}
             buildAll.dependsOn([cleanAllTask, project.subprojects*.build])
 
-            Task prePublishAll = project.task('prePublishAll') << {
-                project.setProperty('releaseVersion', version.versionNumber)
-                project.subprojects*.setProperty('releaseVersion', version.versionNumber)
-            }
-            Task publishAll = project.task('publishAll') << {
-                project.setProperty('releaseVersion', version.versionNumber)
-                project.subprojects*.setProperty('releaseVersion', version.versionNumber)
-            }
+            Task prePublishAll = project.task('prePublishAll') << {}
+            Task publishAll = project.task('publishAll') << {}
 
             releasePrepareTask.dependsOn(buildAll)
             prePublishAll.dependsOn(releasePrepareTask)
             publishAll.dependsOn(performReleaseTask)
             performReleaseTask.dependsOn([prePublishAll, project.subprojects*.publish])
         }
+        logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        logger.info("NOTE: Published artifacts to releases repository with version: ${version.getVersionLabel()}")
+        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
     }
 
     def ensureNoSnapshotDependencies(Configuration configuration) {
