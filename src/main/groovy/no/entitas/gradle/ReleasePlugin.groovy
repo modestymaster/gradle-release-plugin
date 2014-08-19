@@ -67,10 +67,10 @@ abstract class ReleasePlugin implements Plugin<Project> {
             project.subprojects*.apply plugin: 'maven-publish'
 
             Task cleanAllTask = project.task('cleanAll') << {}
-            cleanAllTask.dependsOn(project.subprojects*.clean)
+//            cleanAllTask.dependsOn(project.subprojects*.clean)
 
             Task buildAll = project.task('buildAll') << {}
-            buildAll.dependsOn([cleanAllTask, project.subprojects*.build])
+ //           buildAll.dependsOn([cleanAllTask, project.subprojects*.build])
 
             Task prePublishAll = project.task('prePublishAll') << {}
             Task publishAll = project.task('publishAll') << {}

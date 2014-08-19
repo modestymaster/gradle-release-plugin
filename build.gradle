@@ -121,15 +121,15 @@ ext.defaultProject = {
 uploadArchives.repositories.mavenDeployer {
     uniqueVersion = false
 
-    if (!project.hasProperty('sonatypeUsername')) sonatypeUsername = ''
-    if (!project.hasProperty('sonatypePassword')) sonatypePassword = ''
+    if (!project.hasProperty('sonatypeUsername')) project.ext.sonatypeUsername = ''
+    if (!project.hasProperty('sonatypePassword')) project.ext.sonatypePassword = ''
 
     snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: sonatypeUsername, password: sonatypePassword)
+        authentication(userName: project.ext.sonatypeUsername, password: project.ext.sonatypePassword)
     }
 
     repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: sonatypeUsername, password: sonatypePassword)
+        authentication(userName: project.ext.sonatypeUsername, password: project.ext.sonatypePassword)
     }
 }
 
