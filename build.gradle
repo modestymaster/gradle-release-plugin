@@ -16,8 +16,9 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
+apply plugin: 'fatjar'
 
-version = '1.17'
+version = '1.18'
 group = 'no.entitas.gradle'
 
 repositories {
@@ -38,11 +39,24 @@ dependencies {
     groovy 'org.codehaus.groovy:groovy-all:1.8.6'
 }
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        //allow creation of "fat jars" - executable jars with all dependencies bundled in
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
+    }
+}
+
 // TODO need to create svn/git repos to run the sample on
 task integrationTest(type: GradleBuild, dependsOn: build) {
     dir = 'src/sample'
     tasks = ['clean', 'build']
 }
+
+task build(overwrite:true, dependsOn:[check,fatJar]){}
 
 task sourcesJar(type: Jar, dependsOn: classes) {
      classifier = 'sources'
@@ -131,6 +145,13 @@ uploadArchives.repositories.mavenDeployer {
     repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
         authentication(userName: project.ext.sonatypeUsername, password: project.ext.sonatypePassword)
     }
+}
+
+jar {
+    doFirst {
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } 
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA' 
 }
 
 ext.fixedProject = {

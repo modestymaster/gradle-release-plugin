@@ -34,7 +34,9 @@ abstract class ReleasePlugin implements Plugin<Project> {
         logger = project.logger
 
         if (project.hasProperty('runRelease')) {
-            project.subprojects*.setProperty('releaseVersion', version.getVersionLabel())
+            def versionLabel = version.getVersionLabel()
+            logger.info("Release will be performed, with version label: ${versionLabel}")
+            project.subprojects { ext.releaseVersion = versionLabel } //*.setProperty('releaseVersion', versionLabel)
         }
 
         Task releasePrepareTask = project.task(TASK_RELEASE_PREPARE) << {
