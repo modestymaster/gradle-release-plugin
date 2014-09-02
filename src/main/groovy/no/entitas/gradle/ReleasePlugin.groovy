@@ -36,7 +36,7 @@ abstract class ReleasePlugin implements Plugin<Project> {
         if (project.hasProperty('runRelease')) {
             def versionLabel = version.getVersionLabel()
             logger.info("Release will be performed, with version label: ${versionLabel}")
-            project.subprojects { ext.releaseVersion = versionLabel } //*.setProperty('releaseVersion', versionLabel)
+            project.subprojects { ext.releaseVersion = versionLabel }
         }
 
         Task releasePrepareTask = project.task(TASK_RELEASE_PREPARE) << {
@@ -44,7 +44,7 @@ abstract class ReleasePlugin implements Plugin<Project> {
                 project.allprojects.each { currentProject ->
                     currentProject.configurations.each { configuration ->
                         logger.info("Checking for snapshot dependencies in $currentProject.path -> $configuration.name")
-//                        ensureNoSnapshotDependencies(configuration)
+                        ensureNoSnapshotDependencies(configuration)
                     }
                 }
             }
@@ -69,10 +69,10 @@ abstract class ReleasePlugin implements Plugin<Project> {
             project.subprojects*.apply plugin: 'maven-publish'
 
             Task cleanAllTask = project.task('cleanAll') << {}
-//            cleanAllTask.dependsOn(project.subprojects*.clean)
+            cleanAllTask.dependsOn(project.subprojects*.clean)
 
             Task buildAll = project.task('buildAll') << {}
- //           buildAll.dependsOn([cleanAllTask, project.subprojects*.build])
+            buildAll.dependsOn([cleanAllTask, project.subprojects*.build])
 
             Task prePublishAll = project.task('prePublishAll') << {}
             Task publishAll = project.task('publishAll') << {}
@@ -82,9 +82,9 @@ abstract class ReleasePlugin implements Plugin<Project> {
             publishAll.dependsOn(performReleaseTask)
             performReleaseTask.dependsOn([prePublishAll, project.subprojects*.publish])
         }
-        logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        logger.info("NOTE: Published artifacts to releases repository with version: ${version.getVersionLabel()}")
-        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        logger.info("NOTE: Published artifacts to releases repository version label: ${version.getVersionLabel()}")
+        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
     }
 
     def ensureNoSnapshotDependencies(Configuration configuration) {

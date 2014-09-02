@@ -74,15 +74,15 @@ class GitVersion implements Version {
     // TODO Ensure that we are on a branch
     def releasePreConditions() {
         if (!status.clean) {
-//DANO For now...            throw new GradleException('Changes found in the source tree:\n' + buildStatusText())
+            throw new GradleException('Changes found in the source tree:\n' + buildStatusText())
         }
 
         if (isOnReleaseTag()) {
-//DANO For now...            throw new GradleException('No changes since last tag')
+            throw new GradleException('No changes since last tag')
         }
 
         if (branchIsAheadOfRemote()) {
-//DANO For now...            throw new GradleException('Project contains unpushed commits');
+            throw new GradleException('Project contains unpushed commits');
         }
     }
 
@@ -257,7 +257,7 @@ class GitVersion implements Version {
 
         if (remoteConfigs) {
             project.logger.info("pushing tags")
-//            Git.wrap(repository).push().setPushTags().call()
+            Git.wrap(repository).push().setPushTags().call()
         }
     }
 }

@@ -16,9 +16,8 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
-apply plugin: 'fatjar'
 
-version = '1.18'
+version = '1.19'
 group = 'no.entitas.gradle'
 
 repositories {
@@ -39,24 +38,11 @@ dependencies {
     groovy 'org.codehaus.groovy:groovy-all:1.8.6'
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        //allow creation of "fat jars" - executable jars with all dependencies bundled in
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
-}
-
 // TODO need to create svn/git repos to run the sample on
 task integrationTest(type: GradleBuild, dependsOn: build) {
     dir = 'src/sample'
     tasks = ['clean', 'build']
 }
-
-task build(overwrite:true, dependsOn:[check,fatJar]){}
 
 task sourcesJar(type: Jar, dependsOn: classes) {
      classifier = 'sources'
@@ -133,25 +119,18 @@ ext.defaultProject = {
 }
 
 uploadArchives.repositories.mavenDeployer {
-    uniqueVersion = false
+    uniqueVersion = true
 
     if (!project.hasProperty('sonatypeUsername')) project.ext.sonatypeUsername = ''
     if (!project.hasProperty('sonatypePassword')) project.ext.sonatypePassword = ''
 
-    snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: project.ext.sonatypeUsername, password: project.ext.sonatypePassword)
+    snapshotRepository(url: "https://nexus.juralaw.us/nexus/content/repositories/snapshots/") {
+        authentication(userName: 'deployment', password: 'deployment321')
     }
 
-    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: project.ext.sonatypeUsername, password: project.ext.sonatypePassword)
+    repository(url: "https://nexus.juralaw.us/nexus/content/repositories/releases") {
+        authentication(userName: 'deployment', password: 'deployment321')
     }
-}
-
-jar {
-    doFirst {
-        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } 
-    }
-    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA' 
 }
 
 ext.fixedProject = {

@@ -21,7 +21,7 @@ package no.entitas.gradle
  * @author Stig Kleppe-Jorgensen, 2012.01.12
  */
 class ReleasePluginExtension {
-    def boolean failOnSnapshotDependencies = true
+    def boolean failOnSnapshotDependencies = false
     def versionStrategy = { currentVersion ->
         if (System.properties['release.version']) {
             System.properties['release.version']
